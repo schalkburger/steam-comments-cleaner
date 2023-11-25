@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Steam Comments Cleaner
 // @namespace   https://greasyfork.org/en/users/961305-darkharden
-// @match       https://steamcommunity.com/*/commenthistory
+// @match       https://steamcommunity.com/id/*/commenthistory
 // @version     1.0.0
 // @author      Created by Justman (steamcommunity.com/id/justman666). Fixed by Portal124 (moddb)
 // @description A script that deletes all deletable comments posted from your  account
@@ -83,19 +83,19 @@
     callback // Loading page body with comments and adding it to pages as div
   ) {
     if (fromPageNumber > pages_amount || (LAST_PAGE_TO_CLEAR != -1 && fromPageNumber > LAST_PAGE_TO_CLEAR)) {
-      console.log("    Loaded pages");
+      console.log("Loaded pages");
       console.log(pages);
       if (typeof callback == "function") {
         callback();
       }
       return;
     }
-    console.log("    Loading page #" + fromPageNumber);
+    console.log("Loading page #" + fromPageNumber);
     if (location.search.match(new RegExp("p=" + fromPageNumber)) || fromPageNumber == 1) {
       var elem = document.createElement("div");
       elem.innerHTML = document.body.innerHTML;
       pages.push(elem);
-      console.log("    Loaded page #" + fromPageNumber);
+      console.log("Loaded page #" + fromPageNumber);
       loadPagesFrom(fromPageNumber + 1, callback);
       return;
     }
@@ -124,7 +124,7 @@
         loadPagesFrom(fromPageNumber + 1, callback);
       },
       "fail": function () {
-        console.error("    !!!Unable to load page");
+        console.error("    Steam Comments Cleaner -->Unable to load page");
       },
       "data": search,
       "method": "GET",
@@ -181,7 +181,7 @@
     callback // Clearing comment form comments array by its index
   ) {
     if (index >= comments.length) {
-      console.log("    Cleared URLs");
+      console.log("Cleared URLs");
       console.log(comments);
       if (typeof callback == "function") {
         window.location.hash = ""; // Removing previously set hash
@@ -274,9 +274,9 @@
               throw new Error("\nWas unable to find users comment\n");
             }
           }
-          console.log("    Cleaned comment #" + (index + 1));
+          console.log("Cleaned comment #" + (index + 1));
         } catch (e) {
-          console.error("    !!! Can not clean comment #" + (index + 1));
+          console.error("Steam Comments Cleaner --> Can not clean comment #" + (index + 1));
           console.error(comments[index]);
           console.error(e);
         }
@@ -285,7 +285,7 @@
         }, PAGE_REQUESTS_INTERVAL);
       },
       "fail": function () {
-        console.error("    !!!Unable to send request");
+        console.error("Steam Comments Cleaner --> Unable to send request");
       },
       "data": comments[index]["data"],
       "method": "GET",
@@ -296,35 +296,35 @@
   var loadForumJS = function (i, callback, onFail) {
     var timeout = setTimeout(function () {
       // Setting timeout as reject of load is not supported with getScript
-      console.error("    Error occured loading forum.js #" + i + " - timeout");
+      console.error("Steam Comments Cleaner --> Error occured loading forum.js #" + i + " - timeout");
       if (i + 1 < FORUMS_JS_URL.length) {
         // Still have some links
-        console.error("    Trying next link");
+        console.error("Steam Comments Cleaner --> Trying next link");
         loadForumJS(i + 1, callback, onFail); // Trying another one
       } else {
         // Tryed everything
-        console.error("    Mo links left");
+        console.error("Steam Comments Cleaner --> No links left");
         if (typeof onFail == "function") {
           onFail();
         }
       }
     }, FORUM_JS_LOAD_TIMEOUT);
 
-    console.log("    Trying forum.js #" + i + ". Will try next in " + FORUM_JS_LOAD_TIMEOUT / 1000 + " seconds if this wont work");
+    console.log("Steam Comments Cleaner --> Trying forum.js #" + i + ". Will try next in " + FORUM_JS_LOAD_TIMEOUT / 1000 + " seconds if this wont work");
     jQuery
       .getScript(FORUMS_JS_URL[i])
       .done(function () {
         // Require forum.js to delete forum messages
         // Needed script is loaded and no errors detected
-        console.log("    Loaded forum.js #" + i);
+        console.log("Steam Comments Cleaner --> Loaded forum.js #" + i);
         clearTimeout(timeout); // Stop timeout
         if (typeof callback == "function") {
           callback();
         }
       })
       .fail(function () {
-        console.error("    Error occurred loading forum.js #" + i);
-        console.error("    Trying next link");
+        console.error("Steam Comments Cleaner --> Error occurred loading forum.js #" + i);
+        console.error("Steam Comments Cleaner --> Trying next link");
         if (i + 1 < FORUMS_JS_URL.length) {
           loadForumJS(i + 1, callback, onFail); // Trying another one
         } else {
@@ -342,16 +342,43 @@
   loadForumJS(
     0,
     function () {
-      loadPagesFrom(FIRST_PAGE_TO_CLEAR, function () {
-        loadURLsFrom(1, function () {
-          clearURLfromIndex(0, function () {
-            alert("Done");
+      console.log("Steam Comments Cleaner --> Starts here");
+      console.log("profile_header_actions");
+      function setCommentsCleanerButton() {
+        const uploadCustomArtworkButtonContainer = document.createElement("div");
+        uploadCustomArtworkButtonContainer.className = "rightbox";
+        // Create Buttons
+        uploadCustomArtworkButtonContainer.innerHTML = `
+        <div class="profile_count_link addtocartbutton_Action_2ECxA CartBtn" style="margin-top:20px">
+          <span class="clean-comments-link" href="#">Clean Comments</span>
+        </div>
+        `;
+        // Grab mainContentsDiv element reference
+        const uploadArtworkButtonReferenceParent = document.querySelector(".rightbox .content");
+        const uploadArtworkButtonReferenceChild = document.querySelector(".rightbox .content > div:last-child");
+        // Insert the Buttons
+        uploadArtworkButtonReferenceParent.insertBefore(uploadCustomArtworkButtonContainer, uploadArtworkButtonReferenceChild);
+
+        const buttonCommentsCleaner = document.querySelector(".clean-comments-link");
+        buttonCommentsCleaner.addEventListener("click", () => {
+          console.log("buttonCommentsCleaner clicked");
+          loadCommentsCleaner();
+        });
+      }
+      setTimeout(setCommentsCleanerButton, 0);
+
+      function loadCommentsCleaner() {
+        loadPagesFrom(FIRST_PAGE_TO_CLEAR, function () {
+          loadURLsFrom(1, function () {
+            clearURLfromIndex(0, function () {
+              alert("Steam Comments Cleaner --> Done");
+            });
           });
         });
-      });
+      }
     },
     function () {
-      alert("Can not load forum.js!");
+      alert("Steam Comments Cleaner --> Can not load forum.js!");
     }
   );
 })();
